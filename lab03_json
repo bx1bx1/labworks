@@ -1,0 +1,103 @@
+import sys
+import json
+from PyQt4 import QtGui, QtCore
+
+
+curObj = 0
+countObj = 0
+json_data = ""
+
+def saveJson(form):
+    json_data[curObj]['title'] = str(form[0].displayText())
+    json_data[curObj]['name'] = str(form[1].displayText())
+    json_data[curObj]['message'] = str(form[2].toPlainText())
+
+    json_str = json.dumps(json_data)
+    print(json_str)
+    with open('test.json', 'w') as outfile:
+        outfile.write(json_str)
+
+def nextObj(label, form, val):
+    global curObj
+    global json_data
+    if((curObj+val) < countObj and (curObj+val) >= 0):
+            json_data[curObj]['title'] = str(form[0].displayText())
+            json_data[curObj]['name'] = str(form[1].displayText())
+            json_data[curObj]['message'] = str(form[2].toPlainText())
+            curObj += val;
+            label.setNum(curObj)
+    form[0].setText(json_data[curObj]['title'])
+    form[1].setText(json_data[curObj]['name'])
+    form[2].setText(json_data[curObj]['message'])
+
+# ========== * Main func * ==========
+def main(argv):
+    global countObj
+    global json_data
+    print('main')
+    app = QtGui.QApplication(argv)
+
+    # ------- Interface -------
+    scrWidth = 700
+    scrHeight = 300
+    widget = QtGui.QWidget()
+    widget.resize(scrWidth, scrHeight)
+
+    title = [ QtGui.QLabel('Title:', widget),
+            QtGui.QLabel('Name:', widget),
+            QtGui.QLabel('Message:', widget)]
+    textField = [ QtGui.QLineEdit(widget),
+                QtGui.QLineEdit(widget),
+                QtGui.QTextEdit(widget)]
+    textField[2].setMaximumSize(405, 200)
+
+    grid = QtGui.QGridLayout(widget)
+    grid.addWidget(title[0], 1, 0)
+    grid.addWidget(textField[0], 1, 1)
+    grid.addWidget(title[1], 2, 0)
+    grid.addWidget(textField[1], 2, 1)
+    grid.addWidget(title[2], 3, 0)
+    grid.addWidget(textField[2], 3, 1)
+
+    quitButt = QtGui.QPushButton('Close', widget)
+    quitButt.setGeometry(scrWidth-70, scrHeight-50, 60, 35)
+    widget.connect(quitButt, QtCore.SIGNAL('clicked()'), QtGui.qApp, QtCore.SLOT('quit()'))
+    saveButt = QtGui.QPushButton('Save', widget)
+    saveButt.setGeometry(scrWidth-140, scrHeight-50, 60, 35)
+    saveButt.clicked.connect(lambda: saveJson(textField))
+    rightButt = QtGui.QPushButton('>>', widget)
+    rightButt.setGeometry(scrWidth-40, scrHeight-95, 30, 35)
+    leftButt = QtGui.QPushButton('<<', widget)
+    leftButt.setGeometry(scrWidth-95, scrHeight-95, 30, 35)
+    rightButt.clicked.connect(lambda: nextObj(label, textField, 1))
+    leftButt.clicked.connect(lambda: nextObj(label, textField, -1))
+    label = QtGui.QLabel(widget)
+    label.setNum(curObj)
+    label.setGeometry(scrWidth-55, scrHeight-96, 30, 35)
+
+    # ------- Json loading -------
+    f = open('test.json')
+    json_file = f.read()
+    f.close()
+
+    try:
+        json_data = json.loads(json_file)
+    except ValueError:
+        json_data = ''
+        print ('Json SyntaxError !')
+
+    nextObj(label, textField, curObj)
+    countObj = len(json_data)
+    print(countObj)
+
+
+    # ------- End of prog -------
+    widget.setLayout(grid)
+    widget.show()
+
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    #sys.exit(main())
+    main(sys.argv)
