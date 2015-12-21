@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
+a = QApplication(sys.argv)
+
+w = QMainWindow()
+
+scrWidth = 640
+scrHeight = 480
+
+w.resize(scrWidth, scrHeight)
+
+w.setWindowTitle("PyTest2")
+f= QFileDialog()
+filename=""
+
+# Имя файла
+#filename = "c:\Users\Nikolay\Documents\Python\sampletext.txt"
+
+# Create text box
+textbox = QTextEdit(w)
+textbox.move(10, 30)
+textbox.resize(scrWidth-20, scrHeight-40)
+
+# Actions
+@pyqtSlot()
+def on_click():
+    textbox.setText("Open")
+
+#Открываем файл
+def openFunc():
+    global filename
+    filename = f.getOpenFileName(w, 'Open File', "c:\Users\Nikolay\Documents\Python")
+    oFile = QFile(filename)
+    if oFile.open(QFile.ReadOnly | QFile.Text):
+        stream = QTextStream(oFile)
+    textbox.setText(stream.readAll())
+    oFile.close()
+    w.setWindowTitle(filename)
+
+# Сохраняем файл
+def saveFunc():
+    strText = QString(textbox.toPlainText())
+    sFile = QFile(filename)
+    if sFile.open(QFile.WriteOnly):
+        QTextStream(sFile) << strText
+    sFile.close()
+
+
+
+# Create main menu
+mainMenu = w.menuBar()
+fileMenu = mainMenu.addMenu('&File')
+
+# Add open button
+openButton = QAction(QIcon("exit24.png"), "Open", w)
+openButton.setShortcut('Ctrl+O')
+openButton.setStatusTip('Open file')
+openButton.triggered.connect(openFunc)
+fileMenu.addAction(openButton)
+
+# Add save button
+saveButton = QAction(QIcon("exit24.png"), "Save", w)
+saveButton.setShortcut('Ctrl+S')
+saveButton.setStatusTip('Save file')
+saveButton.triggered.connect(saveFunc)
+fileMenu.addAction(saveButton)
+
+# Add exit button
+exitButton = QAction(QIcon("exit24.png"), "Exit", w)
+exitButton.setShortcut('Ctrl+Q')
+exitButton.setStatusTip('Exit application')
+exitButton.triggered.connect(w.close)
+fileMenu.addAction(exitButton)
+
+# openButton.connect(openButton, on_click())
+
+w.show()
+
+sys.exit(a.exec_())
