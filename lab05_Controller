@@ -1,0 +1,53 @@
+import psycopg2
+import psycopg2.extras
+
+class Controller:
+
+	curObj = 0
+	countObj = 0
+	row_data = ""
+	cur = ""
+	conn = ""
+	
+	def __init__(self):
+		# ------- Database connection -------
+		self.conn = psycopg2.connect("dbname='postgres' user='postgres' host='localhost' password='svs37TM'")
+		self.conn.set_isolation_level(0)
+		self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+		
+		self.cur.execute("""SELECT COUNT(*) from comments""")
+		row = self.cur.fetchone()
+		self.countObj = row[0]
+		self.getRow(1)
+			
+	def getRow(self, rowId):
+		query = "SELECT * from comments WHERE id=%d" % (rowId)
+		self.cur.execute(query)
+		self.row_data = self.cur.fetchone()
+			
+	def getTitle(self):
+		return self.row_data['Title']
+		
+	def getName(self):
+		return self.row_data['Name']
+
+	def getMessage(self):
+		return self.row_data['Message']
+		
+	def getCountObj(self):
+		return self.countObj
+	
+	def setTitle(self, newTitle):
+		self.row_data['Title'] = newTitle
+	
+	def setName(self, newName):
+		self.row_data['Name'] = newName
+	
+	def setMessage(self, newMessage):
+		self.row_data['Message'] = newMessage
+		
+	def saveData(self, numObj):
+		query = """
+		UPDATE comments SET "Title"='%s', "Name"='%s', "Message"='%s' WHERE id=%d;
+		""" % (self.row_data['Title'], self.row_data['Name'], self.row_data['Message'], numObj)
+		self.cur.execute(query)
